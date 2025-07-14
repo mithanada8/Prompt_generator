@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Generator Gemini Pro Veo 3</title>
+    <!-- Tailwind CSS CDN untuk styling modern dan responsif -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Font Inter untuk tampilan yang bersih dan modern */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFFFFF; /* Latar belakang aplikasi warna putih */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Mengatur item ke atas */
+            min-height: 100vh; /* Memastikan aplikasi memenuhi tinggi viewport */
+            padding: 20px; /* Padding di sekitar konten */
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 900px; /* Lebar maksimum container */
+            width: 100%;
+            background-color: #f8f8f8; /* Sedikit off-white untuk kontras */
+            padding: 2.5rem; /* Padding lebih besar */
+            border-radius: 1.5rem; /* Sudut lebih membulat */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Bayangan lembut */
+            margin-top: 20px; /* Sedikit margin dari atas */
+        }
+        .input-group {
+            margin-bottom: 1.5rem; /* Spasi antar grup input */
+        }
+        .label {
+            font-weight: 600; /* Label lebih tebal */
+            margin-bottom: 0.5rem;
+            display: block;
+            color: #333; /* Warna teks gelap */
+        }
+        .input-field, .textarea-field {
+            width: 100%;
+            padding: 0.75rem 1rem; /* Padding yang nyaman */
+            border: 1px solid #ddd; /* Warna border */
+            border-radius: 0.75rem; /* Sudut membulat */
+            outline: none; /* Hilangkan outline default */
+            transition: border-color 0.2s ease, box-shadow 0.2s ease; /* Transisi halus */
+        }
+        .input-field:focus, .textarea-field:focus {
+            border-color: #6366F1; /* Warna border saat fokus (indigo-500) */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Bayangan fokus */
+        }
+        .example-text {
+            font-size: 0.875rem; /* Ukuran font lebih kecil untuk contoh */
+            color: #777; /* Warna abu-abu untuk contoh */
+            margin-top: 0.25rem;
+            margin-left: 0.25rem;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            display: inline-flex; /* Untuk menengahkan ikon/teks jika ada */
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-primary {
+            background-color: #4F46E5; /* Indigo-600 */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #4338CA; /* Indigo-700 */
+            transform: translateY(-1px); /* Efek sedikit naik */
+        }
+        .btn-secondary {
+            background-color: #6B7280; /* Gray-500 */
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #4B5563; /* Gray-700 */
+            transform: translateY(-1px);
+        }
+        .btn-success {
+            background-color: #10B981; /* Emerald-500 */
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #059669; /* Emerald-600 */
+            transform: translateY(-1px);
+        }
+        .btn-info {
+            background-color: #3B82F6; /* Blue-500 */
+            color: white;
+        }
+        .btn-info:hover {
+            background-color: #2563EB; /* Blue-600 */
+            transform: translateY(-1px);
+        }
+        .btn-run {
+            background-color: #DC2626; /* Red-600 */
+            color: white;
+        }
+        .btn-run:hover {
+            background-color: #B91C1C; /* Red-700 */
+            transform: translateY(-1px);
+        }
+        .add-button {
+            background-color: #8B5CF6; /* Violet-500 */
+            color: white;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+        .add-button:hover {
+            background-color: #7C3AED; /* Violet-600 */
+        }
+        .prompt-output-container {
+            background-color: #f0f0f0; /* Latar belakang untuk output prompt */
+            border: 1px dashed #ccc; /* Border putus-putus */
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-top: 2rem;
+            white-space: pre-wrap; /* Mempertahankan spasi dan baris baru */
+            font-size: 1rem;
+            color: #222;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #4F46E5; /* Warna spinner */
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .generated-image-container {
+            margin-top: 2rem;
+            text-align: center;
+            border: 1px solid #eee;
+            padding: 1rem;
+            border-radius: 1rem;
+            background-color: #fff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .generated-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.75rem;
+            margin-top: 1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-4xl font-bold text-center mb-4 text-gray-800">Prompt Generator Gemini Pro Veo 3</h1>
+        <p class="text-center mb-8 text-2xl font-bold text-red-600">dibuat oleh : X-Arif Tok</p>
+
+        <div class="bg-indigo-50 p-4 rounded-xl mb-6 border border-indigo-200">
+            <h2 class="text-xl font-semibold text-indigo-800 mb-2">Petunjuk Pengisian:</h2>
+            <p class="text-indigo-700">Isi setiap kolom dengan deskripsi yang Anda inginkan. Gunakan contoh sebagai referensi. Anda bisa menambahkan lebih banyak karakter dan aksi dengan tombol '+' yang berwarna ungu.</p>
+        </div>
+
+        <form id="promptForm">
+            <!-- Gaya Visual -->
+            <div class="input-group">
+                <label for="visualStyle" class="label">Gaya Visual</label>
+                <input type="text" id="visualStyle" class="input-field" placeholder="Contoh: Anime jepang, surealis, gaya lukisan cat minyak, gaya foto realistis">
+                <p class="example-text">Contoh: Anime jepang, surealis, gaya lukisan cat minyak, gaya foto realistis, animasi 3D, piksel art</p>
+            </div>
+
+            <!-- Karakter/Subjek -->
+            <div class="input-group">
+                <label class="label">Karakter/Subjek</label>
+                <div id="characterInputs">
+                    <div class="flex items-center mb-2">
+                        <input type="text" class="input-field character-input flex-grow" placeholder="Contoh: Seorang astronot, kucing oranye lucu">
+                    </div>
+                </div>
+                <button type="button" class="btn add-button" onclick="addInput('characterInputs', 'character-input', 'Contoh: Robot futuristik')">+ Tambah Karakter Lain</button>
+                <p class="example-text">Contoh: Seorang astronot, kucing oranye lucu, robot futuristik, seorang wanita paruh baya</p>
+            </div>
+
+            <!-- Aksi/Kegiatan -->
+            <div class="input-group">
+                <label class="label">Aksi/Kegiatan</label>
+                <div id="actionInputs">
+                    <div class="flex items-center mb-2">
+                        <input type="text" class="input-field action-input flex-grow" placeholder="Contoh: Melayang di angkasa, bermain bola">
+                    </div>
+                </div>
+                <button type="button" class="btn add-button" onclick="addInput('actionInputs', 'action-input', 'Contoh: Menari di tengah hujan')">+ Tambah Aksi Lain</button>
+                <p class="example-text">Contoh: Melayang di angkasa, bermain bola, sedang makan pizza, menari di tengah hujan</p>
+            </div>
+
+            <!-- Latar/Lingkungan -->
+            <div class="input-group">
+                <label for="environment" class="label">Latar/Lingkungan</label>
+                <input type="text" id="environment" class="input-field" placeholder="Contoh: Di bulan, hutan lebat, kota metropolitan di masa depan">
+                <p class="example-text">Contoh: Di bulan, hutan lebat, kota metropolitan di masa depan, padang rumput yang luas</p>
+            </div>
+
+            <!-- Sudut Kamera -->
+            <div class="input-group">
+                <label for="cameraAngle" class="label">Sudut Kamera</label>
+                <input type="text" id="cameraAngle" class="input-field" placeholder="Contoh: Sudut pandang mata burung (bird's-eye view), close-up">
+                <p class="example-text">Contoh: Sudut pandang mata burung (bird's-eye view), close-up, wide shot, high angle, low angle</p>
+            </div>
+
+            <!-- Gerakan Kamera -->
+            <div class="input-group">
+                <label for="cameraMovement" class="label">Gerakan Kamera</label>
+                <input type="text" id="cameraMovement" class="input-field" placeholder="Contoh: Dolly in, panning ke kanan, tilt up">
+                <p class="example-text">Contoh: Dolly in, panning ke kanan, tilt up, zoom out, steadycam mengikuti karakter</p>
+            </div>
+
+            <!-- Pencahayaan -->
+            <div class="input-group">
+                <label for="lighting" class="label">Pencahayaan</label>
+                <input type="text" id="lighting" class="input-field" placeholder="Contoh: Cahaya senja keemasan, pencahayaan dramatis dari bawah">
+                <p class="example-text">Contoh: Cahaya senja keemasan, pencahayaan dramatis dari bawah, terang benderang, gelap dengan sedikit cahaya bulan</p>
+            </div>
+
+            <!-- Warna -->
+            <div class="input-group">
+                <label for="color" class="label">Warna</label>
+                <input type="text" id="color" class="input-field" placeholder="Contoh: Dominasi warna biru dan ungu, palet warna pastel">
+                <p class="example-text">Contoh: Dominasi warna biru dan ungu, palet warna pastel, kontras tinggi, monokrom</p>
+            </div>
+
+            <!-- Kualitas (Baru Ditambahkan) -->
+            <div class="input-group">
+                <label for="quality" class="label">Kualitas</label>
+                <input type="text" id="quality" class="input-field" placeholder="Contoh: Bokeh, depth of field, wide angle, cinematic, film grain">
+                <p class="example-text">Contoh: Bokeh, depth of field, wide angle, macro, cinematic, film grain, HDR, RAW, high resolution, low light, golden hour, blue hour, fisheye lens, tilt-shift</p>
+            </div>
+
+            <!-- Dialog -->
+            <div class="input-group">
+                <label for="dialog" class="label">Dialog</label>
+                <textarea id="dialog" class="textarea-field" rows="3" placeholder='Contoh: "Halo, dunia!", "Apa kabar?"'></textarea>
+                <p class="example-text">Contoh: "Halo, dunia!", "Apa kabar?", "Saya akan menjelajahi bintang-bintang."</p>
+            </div>
+
+            <!-- Suasana/Mood -->
+            <div class="input-group">
+                <label for="mood" class="label">Suasana/Mood</label>
+                <input type="text" id="mood" class="input-field" placeholder="Contoh: Misterius, ceria, sedih">
+                <p class="example-text">Contoh: Misterius, ceria, sedih, epik, tenang, menegangkan</p>
+            </div>
+
+            <div class="text-center mt-8">
+                <button type="button" class="btn btn-primary px-8 py-3 text-lg" onclick="generatePrompt()">Buat Prompt</button>
+            </div>
+        </form>
+
+        <!-- Area Output Prompt -->
+        <div id="promptOutputContainer" class="prompt-output-container hidden">
+            <h3 class="text-xl font-semibold mb-4 text-gray-700">Prompt Anda:</h3>
+            <pre id="generatedPrompt" class="text-base text-gray-800"></pre>
+            <div class="flex flex-wrap justify-center gap-4 mt-6" id="actionButtons">
+                <button type="button" class="btn btn-success" onclick="copyPrompt()">Salin Prompt</button>
+                <button type="button" class="btn btn-secondary" onclick="resetPrompt()">Reset Prompt</button>
+                <button type="button" class="btn btn-info" id="translateButton" onclick="translatePrompt()">Terjemahkan ke Inggris</button>
+                <button type="button" class="btn btn-run" id="runPromptButton" onclick="runPrompt()">Jalankan Prompt (Generate Image)</button>
+            </div>
+        </div>
+
+        <!-- Area Output Gambar yang Dihasilkan -->
+        <div id="generatedImageContainer" class="generated-image-container hidden">
+            <h3 class="text-xl font-semibold mb-4 text-gray-700">Gambar yang Dihasilkan:</h3>
+            <div id="imagePlaceholder" class="text-gray-500">Gambar akan muncul di sini setelah dihasilkan.</div>
+            <img id="generatedImage" class="generated-image hidden" alt="Gambar yang dihasilkan">
+        </div>
+    </div>
+
+    <script>
+        // Fungsi untuk menambahkan input field dinamis (Karakter, Aksi)
+        function addInput(containerId, className, placeholder) {
+            const container = document.getElementById(containerId);
+            const newDiv = document.createElement('div');
+            newDiv.className = 'flex items-center mb-2';
+            newDiv.innerHTML = `
+                <input type="text" class="input-field ${className} flex-grow" placeholder="${placeholder}">
+                <button type="button" class="ml-2 text-red-500 hover:text-red-700 font-bold" onclick="this.parentNode.remove()">X</button>
+            `;
+            container.appendChild(newDiv);
+        }
+
+        // Fungsi utama untuk menghasilkan prompt
+        function generatePrompt() {
+            const visualStyle = document.getElementById('visualStyle').value.trim();
+            const environment = document.getElementById('environment').value.trim();
+            const cameraAngle = document.getElementById('cameraAngle').value.trim();
+            const cameraMovement = document.getElementById('cameraMovement').value.trim();
+            const lighting = document.getElementById('lighting').value.trim();
+            const color = document.getElementById('color').value.trim();
+            const quality = document.getElementById('quality').value.trim(); 
+            const dialog = document.getElementById('dialog').value.trim();
+            const mood = document.getElementById('mood').value.trim();
+
+            // Mengambil semua input karakter
+            const characterInputs = Array.from(document.querySelectorAll('.character-input'))
+                                        .map(input => input.value.trim())
+                                        .filter(value => value !== '');
+            const characters = characterInputs.join(', ');
+
+            // Mengambil semua input aksi
+            const actionInputs = Array.from(document.querySelectorAll('.action-input'))
+                                    .map(input => input.value.trim())
+                                    .filter(value => value !== '');
+            const actions = actionInputs.join(', ');
+
+            // Membangun string prompt
+            let prompt = `Gaya Visual: ${visualStyle}\n`;
+            prompt += `Karakter/Subjek: ${characters}\n`;
+            prompt += `Aksi/Kegiatan: ${actions}\n`;
+            prompt += `Latar/Lingkungan: ${environment}\n`;
+            prompt += `Sudut Kamera: ${cameraAngle}\n`;
+            prompt += `Gerakan Kamera: ${cameraMovement}\n`;
+            prompt += `Pencahayaan: ${lighting}\n`;
+            prompt += `Warna: ${color}\n`;
+            prompt += `Kualitas: ${quality}\n`; 
+            prompt += `Dialog: ${dialog}\n`;
+            prompt += `Suasana/Mood: ${mood}\n\n`;
+            prompt += `Resolusi: 8K\n`;
+            prompt += `Durasi: 8 detik`;
+
+            // Menampilkan prompt dan tombol aksi
+            document.getElementById('generatedPrompt').textContent = prompt;
+            document.getElementById('promptOutputContainer').classList.remove('hidden');
+            document.getElementById('generatedImageContainer').classList.add('hidden'); // Sembunyikan container gambar saat prompt baru dibuat
+            document.getElementById('generatedImage').src = ''; // Hapus gambar sebelumnya
+            document.getElementById('generatedImage').classList.add('hidden');
+            document.getElementById('imagePlaceholder').classList.remove('hidden');
+        }
+
+        // Fungsi untuk menyalin prompt ke clipboard
+        function copyPrompt() {
+            const promptText = document.getElementById('generatedPrompt').textContent;
+            
+            // Buat elemen textarea sementara
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = promptText;
+            
+            // Tambahkan ke DOM (tidak perlu terlihat oleh pengguna)
+            tempTextArea.style.position = 'fixed';
+            tempTextArea.style.left = '-9999px';
+            document.body.appendChild(tempTextArea);
+            
+            // Pilih teks di dalam textarea
+            tempTextArea.select();
+            
+            try {
+                // Salin teks ke clipboard
+                document.execCommand('copy');
+                alert('Prompt berhasil disalin!');
+            } catch (err) {
+                console.error('Gagal menyalin prompt:', err);
+                alert('Gagal menyalin prompt. Silakan salin secara manual.');
+            } finally {
+                // Hapus elemen textarea sementara
+                document.body.removeChild(tempTextArea);
+            }
+        }
+
+        // Fungsi untuk mereset semua input dan menyembunyikan output
+        function resetPrompt() {
+            document.getElementById('promptForm').reset(); // Reset form
+            document.getElementById('generatedPrompt').textContent = ''; // Hapus teks prompt
+            document.getElementById('promptOutputContainer').classList.add('hidden'); // Sembunyikan container output
+            document.getElementById('generatedImageContainer').classList.add('hidden'); // Sembunyikan container gambar
+            document.getElementById('generatedImage').src = ''; // Hapus gambar sebelumnya
+            document.getElementById('generatedImage').classList.add('hidden');
+            document.getElementById('imagePlaceholder').classList.remove('hidden');
+
+
+            // Reset dynamic character inputs to just one
+            const characterInputsContainer = document.getElementById('characterInputs');
+            characterInputsContainer.innerHTML = `
+                <div class="flex items-center mb-2">
+                    <input type="text" class="input-field character-input flex-grow" placeholder="Contoh: Seorang astronot, kucing oranye lucu">
+                </div>
+            `;
+
+            // Reset dynamic action inputs to just one
+            const actionInputsContainer = document.getElementById('actionInputs');
+            actionInputsContainer.innerHTML = `
+                <div class="flex items-center mb-2">
+                    <input type="text" class="input-field action-input flex-grow" placeholder="Contoh: Melayang di angkasa, bermain bola">
+                </div>
+            `;
+        }
+
+        // Fungsi untuk menerjemahkan prompt (kecuali dialog) menggunakan Gemini API
+        async function translatePrompt() {
+            const originalPrompt = document.getElementById('generatedPrompt').textContent;
+            const translateButton = document.getElementById('translateButton');
+
+            // Regex untuk menemukan bagian Dialog
+            const dialogRegex = /Dialog: "(.*?)"|Dialog: (.*?)(?=\n|$)/s;
+            const match = originalPrompt.match(dialogRegex);
+            const dialogText = match ? (match[1] || match[2] || '').trim() : '';
+
+            // Hapus bagian Dialog dari prompt untuk diterjemahkan
+            let promptToTranslate = originalPrompt.replace(dialogRegex, 'Dialog: [DIALOG_PLACEHOLDER]');
+            // Hapus Resolusi dan Durasi juga agar tidak ikut diterjemahkan oleh LLM
+            promptToTranslate = promptToTranslate.replace(/Resolusi: 8K\nDurasi: 8 detik/, '');
+
+            translateButton.innerHTML = '<span class="loading-spinner"></span> Menerjemahkan...';
+            translateButton.disabled = true;
+
+            let chatHistory = [];
+            // Instruksi ke LLM: terjemahkan ke Inggris, pertahankan format aslinya, abaikan placeholder dialog
+            const promptForLLM = `Terjemahkan teks berikut ke Bahasa Inggris. Pertahankan format aslinya (label diikuti titik dua dan nilai). Abaikan dan jangan terjemahkan placeholder [DIALOG_PLACEHOLDER]. Contoh: "Gaya Visual: Anime jepang" menjadi "Visual Style: Japanese anime".\n\n${promptToTranslate.trim()}`;
+            chatHistory.push({ role: "user", parts: [{ text: promptForLLM }] });
+
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // API key akan disediakan oleh Canvas saat runtime
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    let translatedText = result.candidates[0].content.parts[0].text;
+
+                    // Ganti placeholder dialog dengan dialog asli dalam Bahasa Indonesia
+                    translatedText = translatedText.replace('[DIALOG_PLACEHOLDER]', `${dialogText ? `"${dialogText}"` : ''}`);
+
+                    // Tambahkan kembali Resolusi dan Durasi
+                    translatedText += `\nResolusi: 8K\nDurasi: 8 detik`;
+
+                    document.getElementById('generatedPrompt').textContent = translatedText;
+                } else {
+                    alert('Gagal menerjemahkan prompt. Respon LLM tidak sesuai.');
+                    console.error('LLM response structure unexpected:', result);
+                }
+            } catch (error) {
+                console.error('Error during translation:', error);
+                alert('Terjadi kesalahan saat menerjemahkan. Silakan coba lagi.');
+            } finally {
+                translateButton.innerHTML = 'Terjemahkan ke Inggris';
+                translateButton.disabled = false;
+            }
+        }
+
+        // Fungsi untuk menjalankan prompt dan menghasilkan gambar
+        async function runPrompt() {
+            const promptText = document.getElementById('generatedPrompt').textContent;
+            const runButton = document.getElementById('runPromptButton');
+            const generatedImage = document.getElementById('generatedImage');
+            const imagePlaceholder = document.getElementById('imagePlaceholder');
+            const generatedImageContainer = document.getElementById('generatedImageContainer');
+
+            if (!promptText) {
+                alert('Silakan buat prompt terlebih dahulu!');
+                return;
+            }
+
+            runButton.innerHTML = '<span class="loading-spinner"></span> Menghasilkan Gambar...';
+            runButton.disabled = true;
+            generatedImage.classList.add('hidden'); // Sembunyikan gambar sebelumnya
+            imagePlaceholder.classList.remove('hidden'); // Tampilkan placeholder
+            generatedImageContainer.classList.remove('hidden'); // Pastikan container gambar terlihat
+
+            // Untuk model imagen-3.0-generate-002, prompt harus dalam bahasa Inggris.
+            // Kita akan menerjemahkan prompt terlebih dahulu jika belum dalam bahasa Inggris.
+            let finalPromptForImageGeneration = promptText;
+            // Cek apakah prompt saat ini sudah dalam bahasa Inggris atau belum
+            // Ini adalah heuristik sederhana, bisa jadi tidak 100% akurat
+            const isCurrentlyEnglish = document.getElementById('translateButton').textContent.includes('Terjemahkan ke Inggris') === false;
+
+            if (!isCurrentlyEnglish) {
+                const originalPromptForTranslation = document.getElementById('generatedPrompt').textContent;
+                const dialogRegex = /Dialog: "(.*?)"|Dialog: (.*?)(?=\n|$)/s;
+                const match = originalPromptForTranslation.match(dialogRegex);
+                const dialogText = match ? (match[1] || match[2] || '').trim() : '';
+
+                let promptToTranslate = originalPromptForTranslation.replace(dialogRegex, 'Dialog: [DIALOG_PLACEHOLDER]');
+                promptToTranslate = promptToTranslate.replace(/Resolusi: 8K\nDurasi: 8 detik/, '');
+
+                let chatHistory = [];
+                const promptForLLM = `Translate the following text to English. Maintain its original format (label followed by a colon and value). Ignore and do not translate the placeholder [DIALOG_PLACEHOLDER]. Example: "Gaya Visual: Anime jepang" becomes "Visual Style: Japanese anime".\n\n${promptToTranslate.trim()}`;
+                chatHistory.push({ role: "user", parts: [{ text: promptForLLM }] });
+
+                const payloadLLM = { contents: chatHistory };
+                const apiKeyLLM = ""; // API key akan disediakan oleh Canvas saat runtime
+                const apiUrlLLM = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKeyLLM}`;
+
+                try {
+                    const responseLLM = await fetch(apiUrlLLM, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payloadLLM)
+                    });
+                    const resultLLM = await responseLLM.json();
+
+                    if (resultLLM.candidates && resultLLM.candidates.length > 0 &&
+                        resultLLM.candidates[0].content && resultLLM.candidates[0].content.parts &&
+                        resultLLM.candidates[0].content.parts.length > 0) {
+                        let translatedTextLLM = resultLLM.candidates[0].content.parts[0].text;
+                        translatedTextLLM = translatedTextLLM.replace('[DIALOG_PLACEHOLDER]', `${dialogText ? `"${dialogText}"` : ''}`);
+                        translatedTextLLM += `\nResolusi: 8K\nDurasi: 8 detik`;
+                        finalPromptForImageGeneration = translatedTextLLM;
+                    } else {
+                        throw new Error('LLM response for translation unexpected.');
+                    }
+                } catch (translationError) {
+                    console.error('Error during pre-translation for image generation:', translationError);
+                    alert('Gagal menerjemahkan prompt untuk pembuatan gambar. Silakan coba lagi.');
+                    runButton.innerHTML = 'Jalankan Prompt (Generate Image)';
+                    runButton.disabled = false;
+                    imagePlaceholder.textContent = 'Gagal menerjemahkan prompt untuk pembuatan gambar.';
+                    return;
+                }
+            }
+
+
+            const payload = { instances: { prompt: finalPromptForImageGeneration }, parameters: { "sampleCount": 1 } };
+            const apiKey = ""; // API key akan disediakan oleh Canvas saat runtime
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                    const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                    generatedImage.src = imageUrl;
+                    generatedImage.classList.remove('hidden'); // Tampilkan gambar yang baru dihasilkan
+                    imagePlaceholder.classList.add('hidden'); // Sembunyikan placeholder
+                } else {
+                    alert('Gagal menghasilkan gambar. Respon API tidak sesuai.');
+                    console.error('API response structure unexpected:', result);
+                    imagePlaceholder.textContent = 'Gagal menghasilkan gambar.';
+                }
+            } catch (error) {
+                console.error('Error during image generation:', error);
+                alert('Terjadi kesalahan saat menghasilkan gambar. Silakan coba lagi.');
+                imagePlaceholder.textContent = 'Terjadi kesalahan saat menghasilkan gambar.';
+            } finally {
+                runButton.innerHTML = 'Jalankan Prompt (Generate Image)';
+                runButton.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
+

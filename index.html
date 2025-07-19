@@ -694,7 +694,9 @@
 
             let chatHistory = [{ role: "user", parts: [{ text: promptForLLM }] }];
             const payload = { contents: chatHistory };
-            const apiKey = "AIzaSyAGVBpfLAXihaM2u4KXMZZa85wHZr1Dp38"; 
+            // PENTING: Untuk GitHub Pages, Anda perlu mengganti "" dengan kunci API Gemini Anda.
+            // Contoh: const apiKey = "YOUR_GEMINI_API_KEY";
+            const apiKey = "AIzaSyAGVBpfLAXihaM2u4KXMZZa85wHZr1Dp38"; // API Key dimasukkan di sini
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             try {
@@ -839,7 +841,9 @@
                 // 3. Send to Gemini-Flash for translation
                 const chatHistory = [{ role: "user", parts: [{ text: promptForLLMTranslation }] }];
                 const payloadLLM = { contents: chatHistory };
-                const apiKeyLLM = ""; 
+                // PENTING: Untuk GitHub Pages, Anda perlu mengganti "" dengan kunci API Gemini Anda.
+                // Contoh: const apiKeyLLM = "YOUR_GEMINI_API_KEY";
+                const apiKeyLLM = "AIzaSyAGVBpfLAXihaM2u4KXMZZa85wHZr1Dp38"; // API Key dimasukkan di sini
                 const apiUrlLLM = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKeyLLM}`;
 
                 const responseLLM = await fetch(apiUrlLLM, {
@@ -894,7 +898,10 @@
 
             // 5. Send the final translated prompt to Imagen
             const payload = { instances: { prompt: finalPromptForImageGeneration }, parameters: { "sampleCount": 1 } };
-            const apiKey = "AIzaSyAGVBpfLAXihaM2u4KXMZZa85wHZr1Dp38"; 
+            // PENTING: Untuk GitHub Pages, Anda perlu mengganti "" dengan kunci API Imagen Anda.
+            // Ini biasanya sama dengan kunci API Gemini jika Anda menggunakan Google Cloud Project yang sama.
+            // Contoh: const apiKey = "YOUR_IMAGEN_API_KEY";
+            const apiKey = "AIzaSyAGVBpfLAXihaM2u4KXMZZa85wHZr1Dp38"; // API Key dimasukkan di sini
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
 
             try {
@@ -990,3 +997,4 @@
     </script>
 </body>
 </html>
+

@@ -503,11 +503,7 @@
             
             if (currentMode === 'video') {
                 prompt += `Gerakan Kamera: ${cameraMovement}\n`;
-            } else {
-                prompt += `Gerakan Kamera: N/A (untuk gambar)\n`;
-            }
-
-            prompt += `Pencahayaan: ${lighting}\n`;
+             += `Pencahayaan: ${lighting}\n`;
             prompt += `Warna: ${color}\n`;
             prompt += `Kualitas: ${quality}\n`; 
             prompt += `Resolusi: ${resolution}\n`; 
@@ -694,9 +690,8 @@
 
             let chatHistory = [{ role: "user", parts: [{ text: promptForLLM }] }];
             const payload = { contents: chatHistory };
-            // Kunci API Gemini Anda dimasukkan di sini
-            const apiKey = "AIzaSyActb6sYI7wr_esoDPkK_vfBaKBVhsDeEk";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            // PENTING: Ganti URL ini dengan URL proxy backend Anda untuk Gemini Flash
+            const apiUrl = `https://YOUR_PROXY_BACKEND_URL/proxy/gemini-flash`; // GANTI INI!
 
             try {
                 const response = await fetch(apiUrl, {
@@ -706,7 +701,7 @@
                 });
                 const result = await response.json();
 
-                if (result.candidates && result.candidates.length > 0 &&
+                if (response.ok && result.candidates && result.candidates.length > 0 &&
                     result.candidates[0].content && result.candidates[0].content.parts &&
                     result.candidates[0].content.parts.length > 0) {
                     let translatedText = result.candidates[0].content.parts[0].text;
@@ -731,8 +726,8 @@
 
                     document.getElementById('generatedPrompt').textContent = finalTranslatedPrompt.trim(); 
                 } else {
-                    alert("Gagal! Gagal menerjemahkan prompt. Respon LLM tidak sesuai.");
-                    console.error('LLM response structure unexpected:', result);
+                    alert(`Gagal! Gagal menerjemahkan prompt. Error: ${result.error || 'Unknown error'}`);
+                    console.error('LLM response structure unexpected or error:', result);
                 }
             } catch (error) {
                 console.error('Error during translation:', error);
@@ -837,12 +832,11 @@
             let finalPromptForImageGeneration = '';
 
             try {
-                // 3. Send to Gemini-Flash for translation
+                // 3. Send to Gemini-Flash for translation via proxy
                 const chatHistory = [{ role: "user", parts: [{ text: promptForLLMTranslation }] }];
                 const payloadLLM = { contents: chatHistory };
-                // Kunci API Gemini Anda dimasukkan di sini
-                const apiKeyLLM = "AIzaSyActb6sYI7wr_esoDPkK_vfBaKBVhsDeEk";
-                const apiUrlLLM = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKeyLLM}`;
+                // PENTING: Ganti URL ini dengan URL proxy backend Anda untuk Gemini Flash
+                const apiUrlLLM = `https://YOUR_PROXY_BACKEND_URL/proxy/gemini-flash`; // GANTI INI!
 
                 const responseLLM = await fetch(apiUrlLLM, {
                     method: 'POST',
@@ -851,7 +845,7 @@
                 });
                 const resultLLM = await responseLLM.json();
 
-                if (resultLLM.candidates && resultLLM.candidates.length > 0 &&
+                if (responseLLM.ok && resultLLM.candidates && resultLLM.candidates.length > 0 &&
                     resultLLM.candidates[0].content && resultLLM.candidates[0].content.parts &&
                     resultLLM.candidates[0].content.parts.length > 0) {
                     let translatedTextLLM = resultLLM.candidates[0].content.parts[0].text;
@@ -883,7 +877,7 @@
                     finalPromptForImageGeneration = finalPromptForImageGeneration.trim();
 
                 } else {
-                    throw new Error('LLM response for translation unexpected.');
+                    throw new Error(`LLM response for translation unexpected or error: ${resultLLM.error || 'Unknown error'}`);
                 }
             } catch (translationError) {
                 console.error('Error during pre-translation for image generation:', translationError);
@@ -894,11 +888,10 @@
                 return;
             }
 
-            // 5. Send the final translated prompt to Imagen
+            // 5. Send the final translated prompt to Imagen via proxy
             const payload = { instances: { prompt: finalPromptForImageGeneration }, parameters: { "sampleCount": 1 } };
-            // Kunci API Imagen Anda dimasukkan di sini (seringkali sama dengan kunci Gemini)
-            const apiKey = "AIzaSyActb6sYI7wr_esoDPkK_vfBaKBVhsDeEk";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+            // PENTING: Ganti URL ini dengan URL proxy backend Anda untuk Imagen Predict
+            const apiUrl = `https://YOUR_PROXY_BACKEND_URL/proxy/imagen-predict`; // GANTI INI!
 
             try {
                 const response = await fetch(apiUrl, {
@@ -908,14 +901,14 @@
                 });
                 const result = await response.json();
 
-                if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                if (response.ok && result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
                     const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
                     generatedImage.src = imageUrl;
                     generatedImage.classList.remove('hidden');
                     imagePlaceholder.classList.add('hidden');
                 } else {
-                    alert("Gagal! Gagal menghasilkan gambar. Respon API tidak sesuai.");
-                    console.error('API response structure unexpected:', result);
+                    alert(`Gagal! Gagal menghasilkan gambar. Error: ${result.error || 'Unknown error'}`);
+                    console.error('API response structure unexpected or error:', result);
                     imagePlaceholder.textContent = 'Gagal menghasilkan gambar.';
                 }
             } catch (error) {

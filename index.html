@@ -11,7 +11,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #FFFF00; /* Latar belakang aplikasi warna putih */
+            background-color: #FFFFFF; /* Latar belakang aplikasi warna putih */
             display: flex;
             justify-content: center;
             align-items: flex-start; /* Mengatur item ke atas */
@@ -37,7 +37,7 @@
             display: block;
             color: #333; /* Warna teks gelap */
         }
-        .input-field, .textarea-field {
+        .input-field, .textarea-field, .select-field {
             width: 100%;
             padding: 0.75rem 1rem; /* Padding yang nyaman */
             border: 1px solid #ddd; /* Warna border */
@@ -45,7 +45,7 @@
             outline: none; /* Hilangkan outline default */
             transition: border-color 0.2s ease, box-shadow 0.2s ease; /* Transisi halus */
         }
-        .input-field:focus, .textarea-field:focus {
+        .input-field:focus, .textarea-field:focus, .select-field:focus {
             border-color: #6366F1; /* Warna border saat fokus (indigo-500) */
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Bayangan fokus */
         }
@@ -105,6 +105,22 @@
             background-color: #B91C1C; /* Red-700 */
             transform: translateY(-1px);
         }
+        .btn-edit { /* New style for edit button */
+            background-color: #F59E0B; /* Amber-500 */
+            color: white;
+        }
+        .btn-edit:hover {
+            background-color: #D97706; /* Amber-600 */
+            transform: translateY(-1px);
+        }
+        .btn-export { /* New style for export button */
+            background-color: #14B8A6; /* Teal-500 */
+            color: white;
+        }
+        .btn-export:hover {
+            background-color: #0D9488; /* Teal-600 */
+            transform: translateY(-1px);
+        }
         .add-button {
             background-color: #8B5CF6; /* Violet-500 */
             color: white;
@@ -124,6 +140,12 @@
             white-space: pre-wrap; /* Mempertahankan spasi dan baris baru */
             font-size: 1rem;
             color: #222;
+        }
+        .prompt-output-container pre[contenteditable="true"] {
+            border: 1px solid #6366F1; /* Border saat editable */
+            background-color: #fff;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
         }
         .loading-spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
@@ -156,12 +178,49 @@
             margin-top: 1rem;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
+        .tab-buttons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #E0E7FF; /* Indigo-100 */
+            color: #4F46E5; /* Indigo-600 */
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .tab-button.active {
+            background-color: #4F46E5; /* Indigo-600 */
+            color: white;
+        }
+        .tab-button:hover:not(.active) {
+            background-color: #C7D2FE; /* Indigo-200 */
+        }
+        .dialog-entry {
+            border: 1px solid #e2e8f0; /* Gray-200 */
+            padding: 1rem;
+            border-radius: 0.75rem;
+            background-color: #ffffff;
+            margin-bottom: 1rem;
+        }
+        .dialog-entry:last-child {
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1 class="text-4xl font-bold text-center mb-4 text-gray-800">Prompt Generator Gemini Pro Veo 3</h1>
         <p class="text-center mb-8 text-2xl font-bold text-red-600">dibuat oleh : X-Arif Tok</p>
+
+        <div class="tab-buttons">
+            <button type="button" class="tab-button active" id="imageModeBtn" onclick="switchMode('image')">Generator Prompt Gambar</button>
+            <button type="button" class="tab-button" id="videoModeBtn" onclick="switchMode('video')">Generator Prompt Video</button>
+        </div>
 
         <div class="bg-indigo-50 p-4 rounded-xl mb-6 border border-indigo-200">
             <h2 class="text-xl font-semibold text-indigo-800 mb-2">Petunjuk Pengisian:</h2>
@@ -172,8 +231,8 @@
             <!-- Gaya Visual -->
             <div class="input-group">
                 <label for="visualStyle" class="label">Gaya Visual</label>
-                <input type="text" id="visualStyle" class="input-field" placeholder="Contoh: Anime jepang, surealis, gaya lukisan cat minyak, gaya foto realistis">
-                <p class="example-text">Contoh: Anime jepang, surealis, gaya lukisan cat minyak, gaya foto realistis, animasi 3D, piksel art</p>
+                <input type="text" id="visualStyle" class="input-field" placeholder="Contoh: Anime jepang, surealis, gaya lukisan cat minyak, iklan produk">
+                <p class="example-text">Contoh: Anime jepang, surealis, gaya lukisan cat minyak, iklan produk, cinematic action, vlog dokumenter, vlog selfi, animasi 3D, piksel art</p>
             </div>
 
             <!-- Karakter/Subjek -->
@@ -214,8 +273,8 @@
                 <p class="example-text">Contoh: Sudut pandang mata burung (bird's-eye view), close-up, wide shot, high angle, low angle</p>
             </div>
 
-            <!-- Gerakan Kamera -->
-            <div class="input-group">
+            <!-- Gerakan Kamera (Disembunyikan di mode gambar) -->
+            <div class="input-group" id="cameraMovementGroup">
                 <label for="cameraMovement" class="label">Gerakan Kamera</label>
                 <input type="text" id="cameraMovement" class="input-field" placeholder="Contoh: Dolly in, panning ke kanan, tilt up">
                 <p class="example-text">Contoh: Dolly in, panning ke kanan, tilt up, zoom out, steadycam mengikuti karakter</p>
@@ -235,18 +294,52 @@
                 <p class="example-text">Contoh: Dominasi warna biru dan ungu, palet warna pastel, kontras tinggi, monokrom</p>
             </div>
 
-            <!-- Kualitas (Baru Ditambahkan) -->
+            <!-- Kualitas -->
             <div class="input-group">
                 <label for="quality" class="label">Kualitas</label>
                 <input type="text" id="quality" class="input-field" placeholder="Contoh: Bokeh, depth of field, wide angle, cinematic, film grain">
                 <p class="example-text">Contoh: Bokeh, depth of field, wide angle, macro, cinematic, film grain, HDR, RAW, high resolution, low light, golden hour, blue hour, fisheye lens, tilt-shift</p>
             </div>
 
-            <!-- Dialog -->
-            <div class="input-group">
-                <label for="dialog" class="label">Dialog</label>
-                <textarea id="dialog" class="textarea-field" rows="3" placeholder='Contoh: "Halo, dunia!", "Apa kabar?"'></textarea>
-                <p class="example-text">Contoh: "Halo, dunia!", "Apa kabar?", "Saya akan menjelajahi bintang-bintang."</p>
+            <!-- Resolusi -->
+            <div class="input-group" id="resolutionGroup">
+                <label for="resolution" class="label">Resolusi</label>
+                <select id="resolution" class="select-field">
+                    <option value="8K">8K (Default)</option>
+                    <option value="4K">4K</option>
+                    <option value="2K">2K</option>
+                </select>
+                <p class="example-text">Pilih resolusi untuk output.</p>
+            </div>
+
+            <!-- Durasi (untuk Video) -->
+            <div class="input-group hidden" id="durationGroup">
+                <label for="duration" class="label">Durasi (detik)</label>
+                <input type="number" id="duration" class="input-field" value="8" min="1" placeholder="Contoh: 8">
+                <p class="example-text">Durasi video yang diinginkan dalam detik.</p>
+            </div>
+
+            <!-- Background Sound (untuk Video) -->
+            <div class="input-group hidden" id="backgroundSoundGroup">
+                <label for="backgroundSound" class="label">Background Sound</label>
+                <input type="text" id="backgroundSound" class="input-field" placeholder="Contoh: Musik orkestra epik, suara hutan menenangkan">
+                <p class="example-text">Contoh: Musik orkestra epik, suara hutan menenangkan, melodi piano sedih, dentuman bass elektronik</p>
+            </div>
+
+            <!-- Sound Effect (untuk Video) -->
+            <div class="input-group hidden" id="soundEffectGroup">
+                <label for="soundEffect" class="label">Sound Effect</label>
+                <input type="text" id="soundEffect" class="input-field" placeholder="Contoh: Suara langkah kaki, ledakan, kicauan burung">
+                <p class="example-text">Contoh: Suara langkah kaki, ledakan, kicauan burung, gemuruh guntur, desiran angin</p>
+            </div>
+
+            <!-- Dialog (Disembunyikan di mode gambar) -->
+            <div class="input-group" id="dialogGroup">
+                <label class="label">Dialog</label>
+                <div id="dialogInputsContainer">
+                    <!-- Initial dialog input will be added by JavaScript on load -->
+                </div>
+                <button type="button" class="btn add-button" onclick="addDialogInput()">+ Tambah Dialog Lain</button>
             </div>
 
             <!-- Suasana/Mood -->
@@ -264,11 +357,13 @@
         <!-- Area Output Prompt -->
         <div id="promptOutputContainer" class="prompt-output-container hidden">
             <h3 class="text-xl font-semibold mb-4 text-gray-700">Prompt Anda:</h3>
-            <pre id="generatedPrompt" class="text-base text-gray-800"></pre>
+            <pre id="generatedPrompt" class="text-base text-gray-800" contenteditable="false"></pre>
             <div class="flex flex-wrap justify-center gap-4 mt-6" id="actionButtons">
                 <button type="button" class="btn btn-success" onclick="copyPrompt()">Salin Prompt</button>
                 <button type="button" class="btn btn-secondary" onclick="resetPrompt()">Reset Prompt</button>
+                <button type="button" class="btn btn-edit" id="editPromptButton" onclick="toggleEditMode()">Edit Manual</button>
                 <button type="button" class="btn btn-info" id="translateButton" onclick="translatePrompt()">Terjemahkan ke Inggris</button>
+                <button type="button" class="btn btn-export" onclick="exportJson()">Export JSON</button>
                 <button type="button" class="btn btn-run" id="runPromptButton" onclick="runPrompt()">Jalankan Prompt (Generate Image)</button>
             </div>
         </div>
@@ -276,12 +371,16 @@
         <!-- Area Output Gambar yang Dihasilkan -->
         <div id="generatedImageContainer" class="generated-image-container hidden">
             <h3 class="text-xl font-semibold mb-4 text-gray-700">Gambar yang Dihasilkan:</h3>
+            <p id="videoOutputNote" class="text-red-600 text-sm mb-2 hidden">Catatan: Untuk prompt video, model saat ini menghasilkan gambar tunggal yang merepresentasikan prompt. Pembuatan video aktual lebih kompleks dan tidak didukung langsung oleh API ini di browser.</p>
             <div id="imagePlaceholder" class="text-gray-500">Gambar akan muncul di sini setelah dihasilkan.</div>
             <img id="generatedImage" class="generated-image hidden" alt="Gambar yang dihasilkan">
         </div>
     </div>
 
     <script>
+        let currentMode = 'image'; // Default mode
+        let dialogCounter = 0; // To ensure unique IDs for dialog entries
+
         // Fungsi untuk menambahkan input field dinamis (Karakter, Aksi)
         function addInput(containerId, className, placeholder) {
             const container = document.getElementById(containerId);
@@ -294,17 +393,94 @@
             container.appendChild(newDiv);
         }
 
+        // Fungsi untuk menambahkan input dialog dinamis
+        function addDialogInput() {
+            dialogCounter++;
+            const container = document.getElementById('dialogInputsContainer');
+            const newDiv = document.createElement('div');
+            newDiv.className = 'dialog-entry mb-4 p-4 border border-gray-300 rounded-lg bg-white';
+            newDiv.innerHTML = `
+                <div class="flex items-center mb-2">
+                    <label for="dialogCharacter_${dialogCounter}" class="label mr-2 w-1/4">Karakter:</label>
+                    <input type="text" id="dialogCharacter_${dialogCounter}" class="input-field flex-grow dialog-character" placeholder="Nama Karakter (Contoh: Budi)">
+                </div>
+                <label for="dialogText_${dialogCounter}" class="label mt-2">Teks Dialog:</label>
+                <textarea id="dialogText_${dialogCounter}" class="textarea-field dialog-text" rows="2" placeholder='Contoh: "Apa kabar?"'></textarea>
+                <label for="dialogLanguage_${dialogCounter}" class="label mt-2">Bahasa Dialog:</label>
+                <select id="dialogLanguage_${dialogCounter}" class="select-field dialog-language">
+                    <option value="Indonesia">Bahasa Indonesia</option>
+                    <option value="Sunda">Bahasa Sunda</option>
+                    <option value="Jawa">Bahasa Jawa</option>
+                    <option value="English">English</option>
+                </select>
+                <button type="button" class="ml-auto text-red-500 hover:text-red-700 font-bold mt-2" onclick="this.closest('.dialog-entry').remove()">X Hapus Dialog</button>
+            `;
+            container.appendChild(newDiv);
+        }
+
+
+        // Fungsi untuk beralih mode (Gambar/Video)
+        function switchMode(mode) {
+            currentMode = mode;
+
+            // Update active button style
+            document.getElementById('imageModeBtn').classList.remove('active');
+            document.getElementById('videoModeBtn').classList.remove('active');
+            document.getElementById(mode + 'ModeBtn').classList.add('active');
+
+            // Show/hide groups based on mode
+            if (mode === 'image') {
+                document.getElementById('resolutionGroup').classList.remove('hidden');
+                document.getElementById('durationGroup').classList.add('hidden');
+                document.getElementById('cameraMovementGroup').classList.add('hidden'); // Sembunyikan gerakan kamera
+                document.getElementById('dialogGroup').classList.add('hidden'); // Sembunyikan dialog
+                document.getElementById('backgroundSoundGroup').classList.add('hidden'); // Sembunyikan background sound
+                document.getElementById('soundEffectGroup').classList.add('hidden'); // Sembunyikan sound effect
+            } else { // video mode
+                document.getElementById('resolutionGroup').classList.remove('hidden'); // Resolusi masih relevan untuk video
+                document.getElementById('durationGroup').classList.remove('hidden');
+                document.getElementById('cameraMovementGroup').classList.remove('hidden'); // Tampilkan gerakan kamera
+                document.getElementById('dialogGroup').classList.remove('hidden'); // Tampilkan dialog
+                document.getElementById('backgroundSoundGroup').classList.remove('hidden'); // Tampilkan background sound
+                document.getElementById('soundEffectGroup').classList.remove('hidden'); // Tampilkan sound effect
+            }
+
+            // Reset prompt and output when switching modes
+            resetPrompt();
+        }
+
         // Fungsi utama untuk menghasilkan prompt
         function generatePrompt() {
             const visualStyle = document.getElementById('visualStyle').value.trim();
             const environment = document.getElementById('environment').value.trim();
             const cameraAngle = document.getElementById('cameraAngle').value.trim();
-            const cameraMovement = document.getElementById('cameraMovement').value.trim();
             const lighting = document.getElementById('lighting').value.trim();
             const color = document.getElementById('color').value.trim();
             const quality = document.getElementById('quality').value.trim(); 
-            const dialog = document.getElementById('dialog').value.trim();
+            const resolution = document.getElementById('resolution').value.trim(); 
             const mood = document.getElementById('mood').value.trim();
+            
+            let cameraMovement = '';
+            let duration = '';
+            let backgroundSound = '';
+            let soundEffect = '';
+            let dialogEntries = [];
+
+            if (currentMode === 'video') {
+                cameraMovement = document.getElementById('cameraMovement').value.trim();
+                duration = document.getElementById('duration').value.trim();
+                backgroundSound = document.getElementById('backgroundSound').value.trim();
+                soundEffect = document.getElementById('soundEffect').value.trim();
+                const dialogElements = document.querySelectorAll('#dialogInputsContainer .dialog-entry');
+                dialogElements.forEach(entry => {
+                    const character = entry.querySelector('.dialog-character').value.trim();
+                    const text = entry.querySelector('.dialog-text').value.trim();
+                    const language = entry.querySelector('.dialog-language').value.trim();
+                    if (character || text) { // Only add if there's character or text
+                        dialogEntries.push({ character, text, language });
+                    }
+                });
+            }
 
             // Mengambil semua input karakter
             const characterInputs = Array.from(document.querySelectorAll('.character-input'))
@@ -318,28 +494,79 @@
                                     .filter(value => value !== '');
             const actions = actionInputs.join(', ');
 
-            // Membangun string prompt
+            // Membangun string prompt berdasarkan mode
             let prompt = `Gaya Visual: ${visualStyle}\n`;
             prompt += `Karakter/Subjek: ${characters}\n`;
             prompt += `Aksi/Kegiatan: ${actions}\n`;
             prompt += `Latar/Lingkungan: ${environment}\n`;
             prompt += `Sudut Kamera: ${cameraAngle}\n`;
-            prompt += `Gerakan Kamera: ${cameraMovement}\n`;
+            
+            if (currentMode === 'video') {
+                prompt += `Gerakan Kamera: ${cameraMovement}\n`;
+            } else {
+                prompt += `Gerakan Kamera: N/A (untuk gambar)\n`;
+            }
+
             prompt += `Pencahayaan: ${lighting}\n`;
             prompt += `Warna: ${color}\n`;
             prompt += `Kualitas: ${quality}\n`; 
-            prompt += `Dialog: ${dialog}\n`;
-            prompt += `Suasana/Mood: ${mood}\n\n`;
-            prompt += `Resolusi: 8K\n`;
-            prompt += `Durasi: 8 detik`;
+            prompt += `Resolusi: ${resolution}\n`; 
 
+            if (currentMode === 'video') {
+                prompt += `Durasi: ${duration} detik\n`;
+                prompt += `Background Sound: ${backgroundSound}\n`;
+                prompt += `Sound Effect: ${soundEffect}\n`;
+                if (dialogEntries.length > 0) {
+                    prompt += `Dialog:\n`;
+                    dialogEntries.forEach(entry => {
+                        prompt += `  - ${entry.character ? `[${entry.character}] ` : ''}"${entry.text}" (${entry.language})\n`;
+                    });
+                } else {
+                    prompt += `Dialog: N/A\n`;
+                }
+            } else { // image mode
+                prompt += `Durasi: N/A (untuk gambar)\n`;
+                prompt += `Background Sound: N/A (untuk gambar)\n`;
+                prompt += `Sound Effect: N/A (untuk gambar)\n`;
+                prompt += `Dialog: N/A (untuk gambar)\n`;
+            }
+            
+            prompt += `Suasana/Mood: ${mood}\n\n`;
+            
             // Menampilkan prompt dan tombol aksi
-            document.getElementById('generatedPrompt').textContent = prompt;
+            const generatedPromptElement = document.getElementById('generatedPrompt');
+            generatedPromptElement.textContent = prompt;
+            generatedPromptElement.contentEditable = false; // Disable edit mode when new prompt is generated
+            document.getElementById('editPromptButton').textContent = 'Edit Manual'; // Reset edit button text
+
             document.getElementById('promptOutputContainer').classList.remove('hidden');
             document.getElementById('generatedImageContainer').classList.add('hidden'); // Sembunyikan container gambar saat prompt baru dibuat
             document.getElementById('generatedImage').src = ''; // Hapus gambar sebelumnya
             document.getElementById('generatedImage').classList.add('hidden');
             document.getElementById('imagePlaceholder').classList.remove('hidden');
+
+            // Update run button text based on mode
+            const runButton = document.getElementById('runPromptButton');
+            if (currentMode === 'video') {
+                runButton.textContent = 'Jalankan Prompt (Generate Image dari Video Prompt)';
+            } else {
+                runButton.textContent = 'Jalankan Prompt (Generate Image)';
+            }
+        }
+
+        // Fungsi untuk mengaktifkan/menonaktifkan mode edit manual
+        function toggleEditMode() {
+            const generatedPromptElement = document.getElementById('generatedPrompt');
+            const editButton = document.getElementById('editPromptButton');
+
+            if (generatedPromptElement.contentEditable === 'true') {
+                generatedPromptElement.contentEditable = 'false';
+                editButton.textContent = 'Edit Manual';
+            } else {
+                generatedPromptElement.contentEditable = 'true';
+                editButton.textContent = 'Selesai Edit';
+                generatedPromptElement.focus(); // Focus on the editable area
+            }
         }
 
         // Fungsi untuk menyalin prompt ke clipboard
@@ -359,14 +586,12 @@
             tempTextArea.select();
             
             try {
-                // Salin teks ke clipboard
                 document.execCommand('copy');
-                alert('Prompt berhasil disalin!');
+                alert("Berhasil! Prompt berhasil disalin!");
             } catch (err) {
                 console.error('Gagal menyalin prompt:', err);
-                alert('Gagal menyalin prompt. Silakan salin secara manual.');
+                alert("Gagal! Gagal menyalin prompt. Silakan salin secara manual.");
             } finally {
-                // Hapus elemen textarea sementara
                 document.body.removeChild(tempTextArea);
             }
         }
@@ -375,12 +600,15 @@
         function resetPrompt() {
             document.getElementById('promptForm').reset(); // Reset form
             document.getElementById('generatedPrompt').textContent = ''; // Hapus teks prompt
+            document.getElementById('generatedPrompt').contentEditable = false; // Disable edit mode
+            document.getElementById('editPromptButton').textContent = 'Edit Manual'; // Reset edit button text
+
             document.getElementById('promptOutputContainer').classList.add('hidden'); // Sembunyikan container output
             document.getElementById('generatedImageContainer').classList.add('hidden'); // Sembunyikan container gambar
             document.getElementById('generatedImage').src = ''; // Hapus gambar sebelumnya
             document.getElementById('generatedImage').classList.add('hidden');
             document.getElementById('imagePlaceholder').classList.remove('hidden');
-
+            document.getElementById('videoOutputNote').classList.add('hidden'); // Sembunyikan catatan video
 
             // Reset dynamic character inputs to just one
             const characterInputsContainer = document.getElementById('characterInputs');
@@ -397,33 +625,76 @@
                     <input type="text" class="input-field action-input flex-grow" placeholder="Contoh: Melayang di angkasa, bermain bola">
                 </div>
             `;
+            // Setel ulang resolusi ke default (8K)
+            document.getElementById('resolution').value = '8K';
+            // Setel ulang durasi ke default (8)
+            document.getElementById('duration').value = '8';
+            // Reset dialog inputs to one default entry
+            const dialogInputsContainer = document.getElementById('dialogInputsContainer');
+            dialogInputsContainer.innerHTML = ''; // Clear all
+            dialogCounter = -1; // Reset counter so the first call to addDialogInput makes ID 0
+            addDialogInput(); // Add initial default dialog input
         }
 
         // Fungsi untuk menerjemahkan prompt (kecuali dialog) menggunakan Gemini API
         async function translatePrompt() {
-            const originalPrompt = document.getElementById('generatedPrompt').textContent;
+            const originalPrompt = document.getElementById('generatedPrompt').textContent; // Get current displayed prompt
             const translateButton = document.getElementById('translateButton');
-
-            // Regex untuk menemukan bagian Dialog
-            const dialogRegex = /Dialog: "(.*?)"|Dialog: (.*?)(?=\n|$)/s;
-            const match = originalPrompt.match(dialogRegex);
-            const dialogText = match ? (match[1] || match[2] || '').trim() : '';
-
-            // Hapus bagian Dialog dari prompt untuk diterjemahkan
-            let promptToTranslate = originalPrompt.replace(dialogRegex, 'Dialog: [DIALOG_PLACEHOLDER]');
-            // Hapus Resolusi dan Durasi juga agar tidak ikut diterjemahkan oleh LLM
-            promptToTranslate = promptToTranslate.replace(/Resolusi: 8K\nDurasi: 8 detik/, '');
 
             translateButton.innerHTML = '<span class="loading-spinner"></span> Menerjemahkan...';
             translateButton.disabled = true;
 
-            let chatHistory = [];
-            // Instruksi ke LLM: terjemahkan ke Inggris, pertahankan format aslinya, abaikan placeholder dialog
-            const promptForLLM = `Terjemahkan teks berikut ke Bahasa Inggris. Pertahankan format aslinya (label diikuti titik dua dan nilai). Abaikan dan jangan terjemahkan placeholder [DIALOG_PLACEHOLDER]. Contoh: "Gaya Visual: Anime jepang" menjadi "Visual Style: Japanese anime".\n\n${promptToTranslate.trim()}`;
-            chatHistory.push({ role: "user", parts: [{ text: promptForLLM }] });
+            // Extract parts that should NOT be translated by LLM (dialogs, specific values)
+            const promptLines = originalPrompt.split('\n').map(line => line.trim());
+            let promptToTranslateLines = [];
+            let dialogBlock = [];
+            let inDialogBlock = false;
 
+            promptLines.forEach(line => {
+                if (line.startsWith('Dialog:')) {
+                    inDialogBlock = true;
+                    if (line !== 'Dialog: N/A' && line !== 'Dialog: N/A (untuk gambar)') {
+                        dialogBlock.push(line); // Add "Dialog:" line
+                    }
+                    promptToTranslateLines.push('Dialog: [DIALOG_BLOCK_PLACEHOLDER]'); // Placeholder for LLM
+                } else if (inDialogBlock && line.startsWith('- ')) {
+                    dialogBlock.push(line); // Add dialog entry lines
+                } else {
+                    inDialogBlock = false;
+                    if (line.startsWith('Resolusi:')) {
+                        promptToTranslateLines.push('Resolusi: [RESOLUTION_PLACEHOLDER]');
+                    } else if (line.startsWith('Durasi:')) {
+                        promptToTranslateLines.push('Durasi: [DURATION_PLACEHOLDER]');
+                    } else if (line.startsWith('Background Sound:')) {
+                        promptToTranslateLines.push('Background Sound: [BACKGROUND_SOUND_PLACEHOLDER]');
+                    } else if (line.startsWith('Sound Effect:')) {
+                        promptToTranslateLines.push('Sound Effect: [SOUND_EFFECT_PLACEHOLDER]');
+                    } else if (line.startsWith('Gerakan Kamera:')) {
+                        promptToTranslateLines.push('Gerakan Kamera: [CAMERA_MOVEMENT_PLACEHOLDER]');
+                    } else if (line.startsWith('Bahasa Dialog:')) { // This should be inside dialog block, but handle if somehow outside
+                        promptToTranslateLines.push('Bahasa Dialog: [DIALOG_LANGUAGE_PLACEHOLDER]');
+                    }
+                    else {
+                        promptToTranslateLines.push(line);
+                    }
+                }
+            });
+
+            // Re-join lines for LLM input
+            let promptForLLM = `Translate the following prompt elements to English. Maintain the exact structure (label: value). Do NOT translate the content inside brackets or parentheses, or the specific names/values for 'Resolusi', 'Durasi', 'Bahasa Dialog', 'Background Sound', 'Sound Effect', 'Gerakan Kamera'. Use placeholders for these specific values. Example: "Gaya Visual: Anime jepang" becomes "Visual Style: Japanese anime".\n\n`;
+            promptForLLM += promptToTranslateLines.filter(line => line.trim() !== '').join('\n').trim();
+
+            // Extract actual values for placeholders from original prompt
+            const actualResolution = originalPrompt.match(/Resolusi: (2K|4K|8K)/)?.[1] || '';
+            const actualDuration = originalPrompt.match(/Durasi: (\d+) detik|Durasi: N\/A \(untuk gambar\)/)?.[0].replace('Durasi: ', '') || '';
+            const actualBackgroundSound = originalPrompt.match(/Background Sound: (.*?)(?=\n|$)/)?.[1] || '';
+            const actualSoundEffect = originalPrompt.match(/Sound Effect: (.*?)(?=\n|$)/)?.[1] || '';
+            const actualCameraMovement = originalPrompt.match(/Gerakan Kamera: (.*?)(?=\n|$)/)?.[1] || '';
+            // For dialog language within dialog block, we'll just keep the original string.
+
+            let chatHistory = [{ role: "user", parts: [{ text: promptForLLM }] }];
             const payload = { contents: chatHistory };
-            const apiKey = ""; // API key akan disediakan oleh Canvas saat runtime
+            const apiKey = "AIzaSyAGVBpfLAXihaM2u4KXMZZa85wHZr1Dp38"; 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             try {
@@ -439,20 +710,32 @@
                     result.candidates[0].content.parts.length > 0) {
                     let translatedText = result.candidates[0].content.parts[0].text;
 
-                    // Ganti placeholder dialog dengan dialog asli dalam Bahasa Indonesia
-                    translatedText = translatedText.replace('[DIALOG_PLACEHOLDER]', `${dialogText ? `"${dialogText}"` : ''}`);
+                    // Reconstruct the final translated prompt with original values for placeholders
+                    let finalTranslatedPrompt = translatedText;
 
-                    // Tambahkan kembali Resolusi dan Durasi
-                    translatedText += `\nResolusi: 8K\nDurasi: 8 detik`;
+                    finalTranslatedPrompt = finalTranslatedPrompt.replace('[RESOLUTION_PLACEHOLDER]', actualResolution);
+                    finalTranslatedPrompt = finalTranslatedPrompt.replace('[DURATION_PLACEHOLDER]', actualDuration);
+                    finalTranslatedPrompt = finalTranslatedPrompt.replace('[BACKGROUND_SOUND_PLACEHOLDER]', actualBackgroundSound);
+                    finalTranslatedPrompt = finalTranslatedPrompt.replace('[SOUND_EFFECT_PLACEHOLDER]', actualSoundEffect);
+                    finalTranslatedPrompt = finalTranslatedPrompt.replace('[CAMERA_MOVEMENT_PLACEHOLDER]', actualCameraMovement);
+                    
+                    // Re-insert the original dialog block
+                    if (dialogBlock.length > 0) {
+                        const dialogBlockString = dialogBlock.join('\n');
+                        finalTranslatedPrompt = finalTranslatedPrompt.replace('Dialog: [DIALOG_BLOCK_PLACEHOLDER]', dialogBlockString);
+                    } else {
+                        finalTranslatedPrompt = finalTranslatedPrompt.replace('Dialog: [DIALOG_BLOCK_PLACEHOLDER]', 'Dialog: N/A');
+                    }
 
-                    document.getElementById('generatedPrompt').textContent = translatedText;
+
+                    document.getElementById('generatedPrompt').textContent = finalTranslatedPrompt.trim(); 
                 } else {
-                    alert('Gagal menerjemahkan prompt. Respon LLM tidak sesuai.');
+                    alert("Gagal! Gagal menerjemahkan prompt. Respon LLM tidak sesuai.");
                     console.error('LLM response structure unexpected:', result);
                 }
             } catch (error) {
                 console.error('Error during translation:', error);
-                alert('Terjadi kesalahan saat menerjemahkan. Silakan coba lagi.');
+                alert("Error! Terjadi kesalahan saat menerjemahkan. Silakan coba lagi.");
             } finally {
                 translateButton.innerHTML = 'Terjemahkan ke Inggris';
                 translateButton.disabled = false;
@@ -461,78 +744,157 @@
 
         // Fungsi untuk menjalankan prompt dan menghasilkan gambar
         async function runPrompt() {
-            const promptText = document.getElementById('generatedPrompt').textContent;
+            // 1. Collect all current form values directly
+            const visualStyle = document.getElementById('visualStyle').value.trim();
+            const environment = document.getElementById('environment').value.trim();
+            const cameraAngle = document.getElementById('cameraAngle').value.trim();
+            const lighting = document.getElementById('lighting').value.trim();
+            const color = document.getElementById('color').value.trim();
+            const quality = document.getElementById('quality').value.trim(); 
+            const resolution = document.getElementById('resolution').value.trim(); 
+            const mood = document.getElementById('mood').value.trim();
+            
+            let cameraMovement = '';
+            let duration = '';
+            let backgroundSound = '';
+            let soundEffect = '';
+            let dialogsForPrompt = []; // Array of {character, text, language}
+
+            if (currentMode === 'video') {
+                cameraMovement = document.getElementById('cameraMovement').value.trim();
+                duration = document.getElementById('duration').value.trim();
+                backgroundSound = document.getElementById('backgroundSound').value.trim();
+                soundEffect = document.getElementById('soundEffect').value.trim();
+                const dialogElements = document.querySelectorAll('#dialogInputsContainer .dialog-entry');
+                dialogElements.forEach(entry => {
+                    const character = entry.querySelector('.dialog-character').value.trim();
+                    const text = entry.querySelector('.dialog-text').value.trim();
+                    const language = entry.querySelector('.dialog-language').value.trim();
+                    if (character || text) {
+                        dialogsForPrompt.push({ character, text, language });
+                    }
+                });
+            }
+
+            const characterInputs = Array.from(document.querySelectorAll('.character-input'))
+                                        .map(input => input.value.trim())
+                                        .filter(value => value !== '');
+            const characters = characterInputs.join(', ');
+
+            const actionInputs = Array.from(document.querySelectorAll('.action-input'))
+                                    .map(input => input.value.trim())
+                                    .filter(value => value !== '');
+            const actions = actionInputs.join(', ');
+
+            // 2. Construct the prompt string for translation (with placeholders for non-translatable parts)
+            let promptForLLMTranslation = `Translate the following prompt elements to English. Maintain the exact structure (label: value). Do NOT translate the content inside quotes or parentheses, or the specific names/values for 'Resolusi', 'Durasi', 'Bahasa Dialog', 'Background Sound', 'Sound Effect', 'Gerakan Kamera'. Use placeholders for these specific values. Example: "Gaya Visual: Anime jepang" becomes "Visual Style: Japanese anime".\n\n`;
+            promptForLLMTranslation += `Gaya Visual: ${visualStyle}\n`;
+            promptForLLMTranslation += `Karakter/Subjek: ${characters}\n`;
+            promptForLLMTranslation += `Aksi/Kegiatan: ${actions}\n`;
+            promptForLLMTranslation += `Latar/Lingkungan: ${environment}\n`;
+            promptForLLMTranslation += `Sudut Kamera: ${cameraAngle}\n`;
+            if (currentMode === 'video') {
+                promptForLLMTranslation += `Gerakan Kamera: [CAMERA_MOVEMENT_PLACEHOLDER]\n`;
+            } else {
+                promptForLLMTranslation += `Gerakan Kamera: N/A (untuk gambar)\n`;
+            }
+            promptForLLMTranslation += `Pencahayaan: ${lighting}\n`;
+            promptForLLMTranslation += `Warna: ${color}\n`;
+            promptForLLMTranslation += `Kualitas: ${quality}\n`; 
+            promptForLLMTranslation += `Resolusi: [RESOLUTION_PLACEHOLDER]\n`; 
+            if (currentMode === 'video') {
+                promptForLLMTranslation += `Durasi: [DURATION_PLACEHOLDER] detik\n`;
+                promptForLLMTranslation += `Background Sound: [BACKGROUND_SOUND_PLACEHOLDER]\n`;
+                promptForLLMTranslation += `Sound Effect: [SOUND_EFFECT_PLACEHOLDER]\n`;
+                promptForLLMTranslation += `Dialog: [DIALOG_BLOCK_PLACEHOLDER]\n`; // Placeholder for entire dialog block
+            } else {
+                promptForLLMTranslation += `Durasi: N/A (untuk gambar)\n`;
+                promptForLLMTranslation += `Background Sound: N/A (untuk gambar)\n`;
+                promptForLLMTranslation += `Sound Effect: N/A (untuk gambar)\n`;
+                promptForLLMTranslation += `Dialog: N/A (untuk gambar)\n`;
+            }
+            promptForLLMTranslation += `Suasana/Mood: ${mood}\n`;
+
+            // Display loading state
             const runButton = document.getElementById('runPromptButton');
             const generatedImage = document.getElementById('generatedImage');
             const imagePlaceholder = document.getElementById('imagePlaceholder');
             const generatedImageContainer = document.getElementById('generatedImageContainer');
-
-            if (!promptText) {
-                alert('Silakan buat prompt terlebih dahulu!');
-                return;
-            }
+            const videoOutputNote = document.getElementById('videoOutputNote');
 
             runButton.innerHTML = '<span class="loading-spinner"></span> Menghasilkan Gambar...';
             runButton.disabled = true;
-            generatedImage.classList.add('hidden'); // Sembunyikan gambar sebelumnya
-            imagePlaceholder.classList.remove('hidden'); // Tampilkan placeholder
-            generatedImageContainer.classList.remove('hidden'); // Pastikan container gambar terlihat
+            generatedImage.classList.add('hidden');
+            imagePlaceholder.classList.remove('hidden');
+            generatedImageContainer.classList.remove('hidden');
+            videoOutputNote.classList.add('hidden');
 
-            // Untuk model imagen-3.0-generate-002, prompt harus dalam bahasa Inggris.
-            // Kita akan menerjemahkan prompt terlebih dahulu jika belum dalam bahasa Inggris.
-            let finalPromptForImageGeneration = promptText;
-            // Cek apakah prompt saat ini sudah dalam bahasa Inggris atau belum
-            // Ini adalah heuristik sederhana, bisa jadi tidak 100% akurat
-            const isCurrentlyEnglish = document.getElementById('translateButton').textContent.includes('Terjemahkan ke Inggris') === false;
-
-            if (!isCurrentlyEnglish) {
-                const originalPromptForTranslation = document.getElementById('generatedPrompt').textContent;
-                const dialogRegex = /Dialog: "(.*?)"|Dialog: (.*?)(?=\n|$)/s;
-                const match = originalPromptForTranslation.match(dialogRegex);
-                const dialogText = match ? (match[1] || match[2] || '').trim() : '';
-
-                let promptToTranslate = originalPromptForTranslation.replace(dialogRegex, 'Dialog: [DIALOG_PLACEHOLDER]');
-                promptToTranslate = promptToTranslate.replace(/Resolusi: 8K\nDurasi: 8 detik/, '');
-
-                let chatHistory = [];
-                const promptForLLM = `Translate the following text to English. Maintain its original format (label followed by a colon and value). Ignore and do not translate the placeholder [DIALOG_PLACEHOLDER]. Example: "Gaya Visual: Anime jepang" becomes "Visual Style: Japanese anime".\n\n${promptToTranslate.trim()}`;
-                chatHistory.push({ role: "user", parts: [{ text: promptForLLM }] });
-
-                const payloadLLM = { contents: chatHistory };
-                const apiKeyLLM = ""; // API key akan disediakan oleh Canvas saat runtime
-                const apiUrlLLM = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKeyLLM}`;
-
-                try {
-                    const responseLLM = await fetch(apiUrlLLM, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payloadLLM)
-                    });
-                    const resultLLM = await responseLLM.json();
-
-                    if (resultLLM.candidates && resultLLM.candidates.length > 0 &&
-                        resultLLM.candidates[0].content && resultLLM.candidates[0].content.parts &&
-                        resultLLM.candidates[0].content.parts.length > 0) {
-                        let translatedTextLLM = resultLLM.candidates[0].content.parts[0].text;
-                        translatedTextLLM = translatedTextLLM.replace('[DIALOG_PLACEHOLDER]', `${dialogText ? `"${dialogText}"` : ''}`);
-                        translatedTextLLM += `\nResolusi: 8K\nDurasi: 8 detik`;
-                        finalPromptForImageGeneration = translatedTextLLM;
-                    } else {
-                        throw new Error('LLM response for translation unexpected.');
-                    }
-                } catch (translationError) {
-                    console.error('Error during pre-translation for image generation:', translationError);
-                    alert('Gagal menerjemahkan prompt untuk pembuatan gambar. Silakan coba lagi.');
-                    runButton.innerHTML = 'Jalankan Prompt (Generate Image)';
-                    runButton.disabled = false;
-                    imagePlaceholder.textContent = 'Gagal menerjemahkan prompt untuk pembuatan gambar.';
-                    return;
-                }
+            if (currentMode === 'video') {
+                videoOutputNote.classList.remove('hidden');
             }
 
+            let finalPromptForImageGeneration = '';
 
+            try {
+                // 3. Send to Gemini-Flash for translation
+                const chatHistory = [{ role: "user", parts: [{ text: promptForLLMTranslation }] }];
+                const payloadLLM = { contents: chatHistory };
+                const apiKeyLLM = ""; 
+                const apiUrlLLM = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKeyLLM}`;
+
+                const responseLLM = await fetch(apiUrlLLM, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payloadLLM)
+                });
+                const resultLLM = await responseLLM.json();
+
+                if (resultLLM.candidates && resultLLM.candidates.length > 0 &&
+                    resultLLM.candidates[0].content && resultLLM.candidates[0].content.parts &&
+                    resultLLM.candidates[0].content.parts.length > 0) {
+                    let translatedTextLLM = resultLLM.candidates[0].content.parts[0].text;
+
+                    // 4. Reconstruct the final prompt for Imagen with original non-translated values
+                    finalPromptForImageGeneration = translatedTextLLM;
+
+                    // Replace placeholders with original values
+                    finalPromptForImageGeneration = finalPromptForImageGeneration.replace('[RESOLUTION_PLACEHOLDER]', resolution);
+                    finalPromptForImageGeneration = finalPromptForImageGeneration.replace('[CAMERA_MOVEMENT_PLACEHOLDER]', cameraMovement);
+                    finalPromptForImageGeneration = finalPromptForImageGeneration.replace('[DURATION_PLACEHOLDER]', duration);
+                    finalPromptForImageGeneration = finalPromptForImageGeneration.replace('[BACKGROUND_SOUND_PLACEHOLDER]', backgroundSound);
+                    finalPromptForImageGeneration = finalPromptForImageGeneration.replace('[SOUND_EFFECT_PLACEHOLDER]', soundEffect);
+
+                    // Reconstruct dialog block for placeholder
+                    let dialogBlockString = '';
+                    if (currentMode === 'video' && dialogsForPrompt.length > 0) {
+                        dialogsForPrompt.forEach(entry => {
+                            dialogBlockString += `  - ${entry.character ? `[${entry.character}] ` : ''}"${entry.text}" (${entry.language})\n`;
+                        });
+                        dialogBlockString = 'Dialog:\n' + dialogBlockString.trim(); // Add "Dialog:" label
+                    } else if (currentMode === 'video') {
+                        dialogBlockString = 'Dialog: N/A';
+                    } else {
+                        dialogBlockString = 'Dialog: N/A (untuk gambar)';
+                    }
+                    finalPromptForImageGeneration = finalPromptForImageGeneration.replace('Dialog: [DIALOG_BLOCK_PLACEHOLDER]', dialogBlockString);
+
+                    finalPromptForImageGeneration = finalPromptForImageGeneration.trim();
+
+                } else {
+                    throw new Error('LLM response for translation unexpected.');
+                }
+            } catch (translationError) {
+                console.error('Error during pre-translation for image generation:', translationError);
+                alert("Error! Gagal menerjemahkan prompt untuk pembuatan gambar. Silakan coba lagi.");
+                runButton.innerHTML = 'Jalankan Prompt (Generate Image)';
+                runButton.disabled = false;
+                imagePlaceholder.textContent = 'Gagal menerjemahkan prompt untuk pembuatan gambar.';
+                return;
+            }
+
+            // 5. Send the final translated prompt to Imagen
             const payload = { instances: { prompt: finalPromptForImageGeneration }, parameters: { "sampleCount": 1 } };
-            const apiKey = ""; // API key akan disediakan oleh Canvas saat runtime
+            const apiKey = "AIzaSyAGVBpfLAXihaM2u4KXMZZa85wHZr1Dp38"; 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
 
             try {
@@ -546,23 +908,85 @@
                 if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
                     const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
                     generatedImage.src = imageUrl;
-                    generatedImage.classList.remove('hidden'); // Tampilkan gambar yang baru dihasilkan
-                    imagePlaceholder.classList.add('hidden'); // Sembunyikan placeholder
+                    generatedImage.classList.remove('hidden');
+                    imagePlaceholder.classList.add('hidden');
                 } else {
-                    alert('Gagal menghasilkan gambar. Respon API tidak sesuai.');
+                    alert("Gagal! Gagal menghasilkan gambar. Respon API tidak sesuai.");
                     console.error('API response structure unexpected:', result);
                     imagePlaceholder.textContent = 'Gagal menghasilkan gambar.';
                 }
             } catch (error) {
                 console.error('Error during image generation:', error);
-                alert('Terjadi kesalahan saat menghasilkan gambar. Silakan coba lagi.');
+                alert("Error! Terjadi kesalahan saat menghasilkan gambar. Silakan coba lagi.");
                 imagePlaceholder.textContent = 'Terjadi kesalahan saat menghasilkan gambar.';
             } finally {
                 runButton.innerHTML = 'Jalankan Prompt (Generate Image)';
+                if (currentMode === 'video') {
+                    runButton.textContent = 'Jalankan Prompt (Generate Image dari Video Prompt)';
+                }
                 runButton.disabled = false;
             }
         }
+
+        // Fungsi untuk mengekspor data prompt sebagai JSON
+        function exportJson() {
+            const data = {
+                mode: currentMode,
+                visualStyle: document.getElementById('visualStyle').value.trim(),
+                characters: Array.from(document.querySelectorAll('.character-input')).map(input => input.value.trim()).filter(value => value !== ''),
+                actions: Array.from(document.querySelectorAll('.action-input')).map(input => input.value.trim()).filter(value => value !== ''),
+                environment: document.getElementById('environment').value.trim(),
+                cameraAngle: document.getElementById('cameraAngle').value.trim(),
+                lighting: document.getElementById('lighting').value.trim(),
+                color: document.getElementById('color').value.trim(),
+                quality: document.getElementById('quality').value.trim(),
+                resolution: document.getElementById('resolution').value.trim(),
+                mood: document.getElementById('mood').value.trim()
+            };
+
+            if (currentMode === 'video') {
+                data.cameraMovement = document.getElementById('cameraMovement').value.trim();
+                data.duration = document.getElementById('duration').value.trim();
+                data.backgroundSound = document.getElementById('backgroundSound').value.trim();
+                data.soundEffect = document.getElementById('soundEffect').value.trim();
+                data.dialogs = [];
+                const dialogElements = document.querySelectorAll('#dialogInputsContainer .dialog-entry');
+                dialogElements.forEach(entry => {
+                    const character = entry.querySelector('.dialog-character').value.trim();
+                    const text = entry.querySelector('.dialog-text').value.trim();
+                    const language = entry.querySelector('.dialog-language').value.trim();
+                    if (character || text || language) { // Include even if only language is set
+                        data.dialogs.push({ character, text, language });
+                    }
+                });
+            } else {
+                data.cameraMovement = 'N/A';
+                data.duration = 'N/A';
+                data.backgroundSound = 'N/A';
+                data.soundEffect = 'N/A';
+                data.dialogs = 'N/A';
+            }
+
+            const jsonString = JSON.stringify(data, null, 2); // Pretty print JSON
+
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'prompt_data.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url); // Clean up the URL object
+            alert("Berhasil! Data prompt berhasil diekspor sebagai JSON!");
+        }
+
+
+        // Initial mode setup
+        document.addEventListener('DOMContentLoaded', () => {
+            addDialogInput(); // Add the first dialog input on page load
+            switchMode('image'); // Set initial mode
+        });
     </script>
 </body>
 </html>
-
